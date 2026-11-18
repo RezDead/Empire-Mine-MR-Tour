@@ -48,14 +48,14 @@ namespace _Scripts
             mrukInstance.SceneSettings.TrackableAdded.AddListener(OnTrackableAdded);
             mrukInstance.SceneSettings.TrackableRemoved.AddListener(OnTrackableRemoved);
 
-            if (test && test.TryGetComponent<InfoDisplayHandler>(out var component))
+            if (test && test.TryGetComponent<StatusDisplay>(out var component))
             {
                 component.SetTitle(trackingEnabled ? "Tracking Enabled" : "Tracking Disabled");
                 Debug.Log($"Tracking Enabled: {trackingEnabled}");
             }
             else
             {
-                Debug.Log($"{nameof(QRManager)} requires an InfoDisplayHandler object in the scene!");
+                Debug.Log($"{nameof(QRManager)} requires an StatusDisplay object in the scene!");
             }
         }
 
@@ -71,11 +71,27 @@ namespace _Scripts
         
             Debug.Log($"QR code Found! Payload: {trackable.MarkerPayloadString} added");
             
-            if (test && test.TryGetComponent<InfoDisplayHandler>(out var component))
+            InitInfoDisplay(trackable, instance);
+        }
+
+        private static void InitInfoDisplay(MRUKTrackable trackable, GameObject instance)
+        {
+            if (!instance)
             {
-                component.SetTitle(trackable.MarkerPayloadString);
+                Debug.LogWarning("QR code prefab not found!");
+                return;
             }
 
+            var infoDisplay = instance.GetComponentInChildren<InformationDisplay>(true);
+
+            if (!infoDisplay)
+            {
+                Debug.LogWarning("QR code prefab does not have an InformationDisplay script!");
+                return;
+            }
+            
+            infoDisplay.SetTitle(trackable.MarkerPayloadString);
+            infoDisplay.SetBody(trackable.transform.ToString());
         }
 
         private static void OnTrackableRemoved(MRUKTrackable trackable)
